@@ -16,10 +16,18 @@
 .cell {
     height: 100px;
     width: 100px;
-    border: 1px solid;
+    border: 2px solid;
 }
 
-h1, footer {
+h1, footer, h2 {
     margin: 3%;
     text-align: center;
+}
+
+.p1 {
+    background-color: red;
+}
+
+.p2 {
+    background-color: yellow;
 }
