@@ -59,6 +59,7 @@ function handleColumnClick(columnIndex) {
                 oddPlayer = true;
             }
 
+            checkWin();
             break;
         }
     }
@@ -97,3 +98,80 @@ function handleColumnRelease(columnIndex) {
         }
     }
 }
+
+//These Functions handle win condition and phase
+
+function getBoardState() {
+    const rows = 6;  // Adjust based on your grid size
+    const cols = 7;  // Adjust based on your grid size
+    let board = Array.from({ length: rows }, () => Array(cols).fill(null));
+
+    document.querySelectorAll(".column").forEach((column, colIndex) => {
+        const cells = column.querySelectorAll(".cell");
+        for (let rowIndex = 0; rowIndex < cells.length; rowIndex++) {
+            if (cells[rowIndex].classList.contains("p1")) {
+                board[rowIndex][colIndex] = "p1";
+            } else if (cells[rowIndex].classList.contains("p2")) {
+                board[rowIndex][colIndex] = "p2";
+            }
+        }
+    });
+    console.log("Bpard", board)
+    return board;
+}
+
+function checkWin() {
+    const board = getBoardState();
+    const rows = board.length;
+    const cols = board[0].length;
+
+    function isWinningMove(row, col, player) {
+        if (!player) return false;
+
+        // Direction vectors [row direction, column direction]
+        const directions = [
+            [0, 1],  // Horizontal →
+            [1, 0],  // Vertical ↓
+            [1, 1],  // Diagonal ↘
+            [1, -1]  // Diagonal ↙
+        ];
+
+        for (let [dx, dy] of directions) {
+            let count = 1;
+
+            // Check in one direction
+            for (let i = 1; i < 5; i++) {
+                let newRow = row + dx * i;
+                let newCol = col + dy * i;
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
+                    count++;
+                } else break;
+            }
+
+            // Check in the opposite direction
+            for (let i = 1; i < 5; i++) {
+                let newRow = row - dx * i;
+                let newCol = col - dy * i;
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
+                    count++;
+                } else break;
+            }
+
+            if (count >= 5) return true;
+        }
+
+        return false;
+    }
+
+    // Loop through the board to find the last placed piece
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            if (board[row][col] && isWinningMove(row, col, board[row][col])) {
+                winPhase = 1;
+                eventText.innerText = `${board[row][col]} wins!`;
+                return;
+            }
+        }
+    }
+}
+
