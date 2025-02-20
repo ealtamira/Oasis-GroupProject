@@ -116,7 +116,7 @@ function getBoardState() {
             }
         }
     });
-    console.log("Bpard", board)
+    console.log("Board", board)
     return board;
 }
 
