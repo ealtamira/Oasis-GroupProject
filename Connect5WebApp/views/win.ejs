@@ -1,4 +1,22 @@
 <!DOCTYPE html>
 <html>
-    
+    <head> 
+        <!-- Corrected path for the site.js file -->
+        <script src="/js/site.js"></script>
+        <title>
+            The winner!
+        </title>
+    </head>
+
+    <body>
+        <h1>🎉 Congratulations!</h1>
+        <p>The winner is: <strong><%= winner %></strong></p>
+        <button onclick="goToHome()">Play Again</button>
+
+        <script>
+            function goToHome() {
+                window.location.href = '/'; // Redirect to the base game
+            }
+        </script>
+    </body>
 </html>

@@ -169,6 +169,11 @@ function checkWin() {
             if (board[row][col] && isWinningMove(row, col, board[row][col])) {
                 winPhase = 1;
                 eventText.innerText = `${board[row][col]} wins!`;
+                let winner = board[row][col];
+                setTimeout(() => {
+                window.location.href = `/win?winner=${winner}`;
+            }, 2000);
+                 // Redirect after a 2-second delay
                 return;
             }
         }
