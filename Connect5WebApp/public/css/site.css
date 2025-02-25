@@ -31,3 +31,7 @@ h1, footer, h2 {
 .p2 {
     background-color: yellow;
 }
+
+.stone {
+    background-color: grey;
+}
