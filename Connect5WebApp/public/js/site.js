@@ -5,6 +5,55 @@ let eventText = document.getElementById("eventText");
 
 let winPhase = 0;
 
+let p1Btn = document.getElementById('p1powerup');
+let p2Btn = document.getElementById('p2powerup');
+let resetbutton = document.getElementById('resetbutton');
+
+let p1Ab = "";
+let p2Ab = "";
+let currentPowerUp = "";
+
+resetbutton.innerHTML = `<button onclick="resetAb()">Reset</button>`;
+let rand = Math.floor(Math.random() * 2);
+
+if (rand == 0) {
+    p1Ab = "Stone";
+    p1Btn.innerHTML = `<button onclick="useStone()">Stone (P1)</button>`;
+
+    p2Ab = "Double";
+    p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
+    
+} else {
+    p1Ab = "Double";
+    p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
+
+    p2Ab = "Stone";
+    p2Btn.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
+}
+
+function resetAb() {
+    currentPowerUp = "";
+    console.log("Reset Power-Up");
+}
+
+function useDouble() {
+    if (p1Ab == "Double" && oddPlayer || p2Ab == "Double" && !oddPlayer) {
+        currentPowerUp = "Double";
+        console.log("Power Up Double Activated!")
+    } else {
+        console.log("Invalid Turn.")
+    }
+}
+
+function useStone() {
+    if (p1Ab == "Stone" && oddPlayer || p2Ab == "Stone" && !oddPlayer) {
+        currentPowerUp = "Stone";
+        console.log("Power Up Stone Activated!")
+    } else {
+        console.log("Invalid Turn.")
+    }
+}
+
 columns.forEach((column, columnIndex) => {
     column.addEventListener("click", () => {
         handleColumnClick(columnIndex);
@@ -13,6 +62,7 @@ columns.forEach((column, columnIndex) => {
         Fix for the Hovering not working after a click
         A new event has to be instantiated to trigger the event listener
         */
+
         const mouseOverEvent = new Event("mouseover");
         column.dispatchEvent(mouseOverEvent);
     });
@@ -49,15 +99,42 @@ function handleColumnClick(columnIndex) {
                 columnCells[i - 1].classList.add("playable");
             }
 
-            console.log("Hi")
+            console.log(columnIndex)
+            if (currentPowerUp == "Stone") {
+                columnCells[i].classList.add("stone");
+                currentPowerUp = "";
 
-            if (oddPlayer) {
+                if (p1Ab == "Stone") {
+                    p1Ab = "";
+                    p1Btn.innerHTML = "";
+                } else {
+                    p2Ab = "";
+                    p2Btn.innerHTML = "";
+                }
+
+            } 
+            else if (currentPowerUp == "Double") {
+                if (oddPlayer) {
+                    columnCells[i].classList.add("p1");
+                    p1Ab = "";
+                    p1Btn.innerHTML = "";
+                } else {
+                    columnCells[i].classList.add("p2");
+                    p2Ab = "";
+                    p2Btn.innerHTML = "";
+                }
+
+                currentPowerUp = "";
+                checkWin();
+                break;
+            }
+            else if (oddPlayer) {
                 columnCells[i].classList.add("p1");
-                oddPlayer = false;
             } else {
                 columnCells[i].classList.add("p2");
-                oddPlayer = true;
-            }
+            }   
+
+            oddPlayer = !oddPlayer;
 
             checkWin();
             break;
@@ -73,7 +150,10 @@ function handleColumnHover(columnIndex) {
 
     for (let i = (columnCells.length - 1); i >= 0; i--) {
         if (columnCells[i].classList.contains("playable")) {
-            if (oddPlayer) {
+            if (currentPowerUp == "Stone") {
+                columnCells[i].classList.add("stone");
+            }
+            else if (oddPlayer) {
                 columnCells[i].classList.add("p1");
             } else {
                 columnCells[i].classList.add("p2");
@@ -90,7 +170,10 @@ function handleColumnRelease(columnIndex) {
 
     for (let i = (columnCells.length - 1); i >= 0; i--) {
         if (columnCells[i].classList.contains("playable")) {
-            if (oddPlayer) {
+            if (currentPowerUp == "Stone") {
+                columnCells[i].classList.remove("stone");
+            }
+            else if (oddPlayer) {
                 columnCells[i].classList.remove("p1");
             } else {
                 columnCells[i].classList.remove("p2");
@@ -113,9 +196,16 @@ function getBoardState() {
                 board[rowIndex][colIndex] = "p1";
             } else if (cells[rowIndex].classList.contains("p2")) {
                 board[rowIndex][colIndex] = "p2";
+            } else if (cells[rowIndex].classList.contains("stone")) {
+                board[rowIndex][colIndex] = "stone";
             }
         }
     });
+
+
+    //  console.log(board[rowIndex][colIndex]);
+
+
     console.log("Board", board)
     return board;
 }
@@ -124,6 +214,11 @@ function checkWin() {
     const board = getBoardState();
     const rows = board.length;
     const cols = board[0].length;
+
+    console.log("p1Ab:", p1Ab, "p2Ab:", p2Ab, "resetbutton:", resetbutton);
+    if (p1Ab == "" && p2Ab == "") {
+        resetbutton.style.display = "none";
+    }
 
     function isWinningMove(row, col, player) {
         if (!player) return false;
@@ -143,6 +238,7 @@ function checkWin() {
             for (let i = 1; i < 5; i++) {
                 let newRow = row + dx * i;
                 let newCol = col + dy * i;
+                if (board[newRow][newCol] === "stone") break;
                 if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
                     count++;
                 } else break;
@@ -152,6 +248,7 @@ function checkWin() {
             for (let i = 1; i < 5; i++) {
                 let newRow = row - dx * i;
                 let newCol = col - dy * i;
+                if (board[newRow][newCol] === "stone") break;
                 if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
                     count++;
                 } else break;
