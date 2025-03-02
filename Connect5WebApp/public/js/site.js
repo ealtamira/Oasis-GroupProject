@@ -17,6 +17,8 @@ let p1Ab2 = "";
 let p2Ab2 = "";
 let currentPowerUp = "";
 
+let gameData = [];
+
 resetbutton.innerHTML = `<button onclick="resetAb()">Reset</button>`;
 let rand = Math.floor(Math.random() * 5);
 
@@ -98,6 +100,24 @@ columns.forEach((column, columnIndex) => {
 // This is the function to handle the column clicks.
 function handleColumnClick(columnIndex) {
     if (winPhase > 0) return;
+
+    //-- This here is for the game to save data in JSON
+
+    // Capture board state before move
+    const boardState = getBoardState(); // Function to get board array
+
+    // Record the move
+    const moveData = {
+        board: JSON.parse(JSON.stringify(boardState)), // Deep copy to avoid mutations
+        move: columnIndex,
+        player: oddPlayer ? "p1" : "p2",
+        powerUp: currentPowerUp || null
+    };
+
+    gameData.push(moveData); // Store move in dataset
+
+    //-- The save data code ends here
+
     /*
     https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child
 
@@ -278,7 +298,10 @@ function checkWin() {
                 } else break;
             }
 
-            if (count >= 5) return true;
+            if (count >= 5){
+                saveGameData();
+                return true;
+            }
         }
 
         return false;
@@ -301,3 +324,12 @@ function checkWin() {
     }
 }
 
+// Function to download JSON file
+function saveGameData() {
+    const jsonData = JSON.stringify(gameData, null, 2);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "game_data.json";
+    a.click();
+}

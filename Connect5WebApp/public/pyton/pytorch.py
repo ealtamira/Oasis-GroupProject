@@ -10,11 +10,6 @@ def load_dataset(file_path):
         data = json.load(file)
     return data
 
-# Example dataset structure:
-# [
-#   {"board_state": [[0,0,0,0,0,0,0], ..., [-1,1,1,-1,1,-1,1]], "next_move": [2, 3]},
-#   ...
-# ]
 dataset = load_dataset("connect5_dataset.json")
 
 # Convert dataset into input (X) and output (y)
