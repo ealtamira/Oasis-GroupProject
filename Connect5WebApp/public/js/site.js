@@ -7,22 +7,46 @@ let winPhase = 0;
 
 let p1Btn = document.getElementById('p1powerup');
 let p2Btn = document.getElementById('p2powerup');
+let p1Btn2 = document.getElementById('p1powerup2');
+let p2Btn2 = document.getElementById('p2powerup2');
 let resetbutton = document.getElementById('resetbutton');
 
 let p1Ab = "";
 let p2Ab = "";
+let p1Ab2 = "";
+let p2Ab2 = "";
 let currentPowerUp = "";
 
 resetbutton.innerHTML = `<button onclick="resetAb()">Reset</button>`;
-let rand = Math.floor(Math.random() * 2);
+let rand = Math.floor(Math.random() * 5);
 
 if (rand == 0) {
     p1Ab = "Stone";
-    p1Btn.innerHTML = `<button onclick="useStone()">Stone (P1)</button>`;
+    p1Btn2.innerHTML = `<button onclick="useStone()">Stone (P1)</button>`;
+
+    p1Ab2 = "Double";
+    p1Btn.innerHTML = `<button onclick="useStone()">Double Place (P1)</button>`;
 
     p2Ab = "Double";
-    p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
+    p2Btn2.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
+
+    p2Ab2 = "Stone";
+    p2Btn.innerHTML = `<button onclick="useDouble()">Stone (P2)</button>`;
     
+} else if(rand == 1) {
+
+    p1Ab = "Double";
+    p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
+
+    p1Ab2 = "Double";
+    p1Btn2.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
+
+    p2Ab = "Stone";
+    p2Btn.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
+
+    p2Ab2 = "Stone";
+    p2Btn2.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
+
 } else {
     p1Ab = "Double";
     p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
@@ -234,21 +258,21 @@ function checkWin() {
         for (let [dx, dy] of directions) {
             let count = 1;
 
-            // Check in one direction
-            for (let i = 1; i < 5; i++) {
-                let newRow = row + dx * i;
-                let newCol = col + dy * i;
-                if (board[newRow][newCol] === "stone") break;
-                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
-                    count++;
-                } else break;
-            }
+                // Check in one direction
+                for (let i = 1; i < 5; i++) {
+                    let newRow = row + dx * i;
+                    let newCol = col + dy * i;
+                    //if (board[newRow][newCol] === "stone") break;
+                    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
+                        count++;
+                    } else break;
+                }
 
-            // Check in the opposite direction
-            for (let i = 1; i < 5; i++) {
+                // Check in the opposite direction
+                for (let i = 1; i < 5; i++) {
                 let newRow = row - dx * i;
                 let newCol = col - dy * i;
-                if (board[newRow][newCol] === "stone") break;
+                //if (board[newRow][newCol] === "stone") break;
                 if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
                     count++;
                 } else break;
