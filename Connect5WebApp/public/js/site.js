@@ -261,54 +261,58 @@ function checkWin() {
     }
 }
 
-// AI prediction update function
-let model = null;
+// // AI prediction update function
+// let model = null;
 
-// Ensure the model is loaded before any prediction
-async function loadModel() {
-    try {
-        console.log("Loading the model...");
-        model = await ort.InferenceSession.create("./js/connect5_model.onnx");
-        console.log("Model loaded successfully");
-    } catch (err) {
-        console.error("Error loading AI model:", err);
+// // Ensure the model is loaded before any prediction
+// async function loadModel() {
+//     try {
+//         console.log("Loading the model...");
+//         model = await ort.InferenceSession.create("./js/connect5_model.onnx");
+//         console.log("Model loaded successfully");
+//     } catch (err) {
+//         console.error("Error loading AI model:", err);
 
-    }
-}
+//     }
+// }
 
-// AI prediction update function
-async function updateAIPrediction() {
-    if (!model) {
-        console.error("AI model is not loaded properly.");
-        return;
-    }
+// // AI prediction update function
+// async function updateAIPrediction() {
+//     if (!model) {
+//         console.error("AI model is not loaded properly.");
+//         return;
+//     }
 
-    const input = getBoardState().flat().slice(0, 44); // This should return a flattened 44-element array
+//     const input = getBoardState().flat().slice(0, 44); // This should return a flattened 44-element array
 
-    try {
-        console.log("Input data:", input);
+//     try {
+//         console.log("Input data:", input);
 
-        // Ensure the input data is a Float32Array
-        const inputArray = new Float32Array(input);  // Convert the input to Float32Array
-        const inputTensor = new ort.Tensor("float32", inputArray, [1, 44]); // 1 sample, 44 features
+//         // Ensure the input data is a Float32Array
+//         const inputArray = new Float32Array(44);  // Convert the input to Float32Array
+//         inputArray.set(input);
+//         inputArray[42] = 0; // Assign 0 or any other value you need
+//         inputArray[43] = 0;
+//         const inputTensor = new ort.Tensor("float32", inputArray, [1, 44]); // 1 sample, 44 features
 
-        // Create an object to feed the model
-        const feeds = {
-            input: inputTensor  // The input name used during export is 'input'
-        };
+//         // Create an object to feed the model
+//         const feeds = {
+//             input: inputTensor  // The input name used during export is 'input'
+//         };
 
-        // Run the model
-        const output = await model.run(feeds);
-        console.log("AI Prediction output:", output);
+//         // Run the model
+//         const output = await model.run(feeds);
+//         console.log("AI Prediction output:", output);
 
-        // Extract the prediction result (assuming 'output' is the name of the output tensor)
-        const prediction = output.output.data;
-        console.log("Predicted Output:", prediction);
+//         // Extract the prediction result (assuming 'output' is the name of the output tensor)
+//         const prediction = output.output.data;
+//         console.log("Predicted Output:", prediction);
+//         aiPredict.innerText = `AI Prediction: ${prediction[0]}`;
 
-    } catch (err) {
-        console.error("Error during prediction:", err);
-    }
-}
+//     } catch (err) {
+//         console.error("Error during prediction:", err);
+//     }
+// }
 
 function saveGameData() {
     const jsonData = JSON.stringify(gameData, null, 2);
