@@ -11,6 +11,8 @@ let p1Btn2 = document.getElementById('p1powerup2');
 let p2Btn2 = document.getElementById('p2powerup2');
 let resetbutton = document.getElementById('resetbutton');
 
+let aiPredict = document.getElementById('predict');
+
 let p1Ab = "";
 let p2Ab = "";
 let p1Ab2 = "";
@@ -333,3 +335,22 @@ function saveGameData() {
     a.download = "game_data.json";
     a.click();
 }
+
+async function loadModel() {
+    // Load the ONNX model
+    const session = await ort.InferenceSession.create("connect5_model.onnx");
+
+    // Example input (random board state)
+    const inputTensor = new ort.Tensor("float32", new Float32Array(44), [1, 44]);
+
+    // Run the model
+    const outputs = await session.run({ input: inputTensor });
+    
+    // Get predicted move (highest probability column)
+    const moveProbabilities = outputs.output.data;
+    const bestMove = moveProbabilities.indexOf(Math.max(...moveProbabilities));
+
+    aiPredict.innerText("Best move:", bestMove);
+}
+
+loadModel();
