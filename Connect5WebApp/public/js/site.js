@@ -17,6 +17,9 @@ let currentPowerUp = "";
 
 let gameData = [];
 
+// Load AI Model on Page Load
+window.addEventListener("load", loadModel);
+
 resetbutton.innerHTML = `<button onclick="resetAb()">Reset</button>`;
 let rand = Math.floor(Math.random() * 5);
 
@@ -133,12 +136,13 @@ function handleColumnClick(columnIndex) {
             oddPlayer = !oddPlayer;
 
             checkWin();
+
+            // Update AI prediction after each move
+            updateAIPrediction();
+
             break;
         }
     }
-
-    // Update AI prediction after each move
-    updateAIPrediction();
 }
 
 function handleColumnHover(columnIndex) {
@@ -180,21 +184,18 @@ function handleColumnRelease(columnIndex) {
 }
 
 function getBoardState() {
-    const rows = 6;  
-    const cols = 7;  
-    let board = Array.from({ length: rows }, () => Array(cols).fill(null));
+    const board = [];
+    const columns = document.querySelectorAll(".column");
 
-    document.querySelectorAll(".column").forEach((column, colIndex) => {
-        const cells = column.querySelectorAll(".cell");
-        for (let rowIndex = 0; rowIndex < cells.length; rowIndex++) {
-            if (cells[rowIndex].classList.contains("p1")) {
-                board[rowIndex][colIndex] = "p1";
-            } else if (cells[rowIndex].classList.contains("p2")) {
-                board[rowIndex][colIndex] = "p2";
-            } else if (cells[rowIndex].classList.contains("stone")) {
-                board[rowIndex][colIndex] = "stone";
-            }
-        }
+    columns.forEach(column => {
+        let colState = [];
+        column.querySelectorAll(".cell").forEach(cell => {
+            if (cell.classList.contains("p1")) colState.push(1);
+            else if (cell.classList.contains("p2")) colState.push(2);
+            else if (cell.classList.contains("stone")) colState.push(-1);
+            else colState.push(0);
+        });
+        board.push(colState);
     });
 
     return board;
@@ -254,89 +255,64 @@ function checkWin() {
 }
 
 // AI prediction update function
-async function updateAIPrediction() {
+let model = null;
+
+const input = [ /* your data here (44 elements) */ ];
+const inputArray = new Float32Array(input);
+
+
+let someInputData = [
+    0, 1, 0, 1, 0, 1,   // Row 1 (7 columns)
+    1, 0, 1, 0, 1, 0,   // Row 2
+    0, 1, 0, 1, 0, 1,   // Row 3
+    1, 0, 1, 0, 1, 0,   // Row 4
+    0, 1, 0, 1, 0, 1,   // Row 5
+    1, 0, 1, 0, 1, 0,   // Row 6
+    0, 1, 0, 1, 0, 1,   // Row 7 (Flattened)
+    
+    // 2 extra elements for additional features (e.g., player turn and power-up)
+    1, 0   // Example: player 1's turn, no power-up (adjust based on actual features)
+];
+
+async function loadModel() {
     try {
-        const boardState = getBoardState();  // This should return a 6x7 array
-        console.log("Raw Board State:", boardState); // Log to verify
-        
-        const flatBoard = boardState.flat();  // Flatten the 2D array into a 1D array (42 elements)
-        console.log("Flattened Board State:", flatBoard); // Verify the flattened state
-        
-        // Function to preprocess board state
-        function preprocessBoardState(boardState) {
-            // Flatten the board and map each cell to a corresponding value
-            const processedBoard = boardState.flat().map(cell => {
-                if (cell === null) return 0;  // Empty cell
-                if (cell === "p1") return 1;  // Player 1
-                if (cell === "p2") return 2;  // Player 2
-                return 0;  // Default case, should not occur
-            });
-        
-            console.log("Processed Board:", processedBoard); // Verify the processed board
-            return processedBoard;
-        }
-        
+        model = await ort.InferenceSession.create("./js/connect5_model.onnx");
+        console.log("Model loaded successfully");
+    } catch (err) {
+        console.error("Error loading AI model:", err);
+    }
+}
 
-        // Preprocess the board state
-        const processedBoard = preprocessBoardState(boardState);
-        console.log("Processed Board state:", processedBoard); // Debugging the processed board
+async function updateAIPrediction(input) {
+    if (!model) {
+        console.error("AI model is not loaded properly.");
+        return;
+    }
 
-        // Check that the board is the correct size (42 elements)
-        if (processedBoard.length !== 42) {
-            throw new Error("Board state does not have 42 elements.");
-        }
+    try {
+        // Ensure input is a Float32Array and reshape it to [1, 44]
+        const inputArray = new Float32Array(input);  // Convert input data to Float32Array
+        const inputTensor = new ort.Tensor("float32", inputArray, [1, 44]);  // Shape [1, 44]
 
-        // Add extra features to match the model's input size (44)
-        const currentPlayerFeature = oddPlayer ? 1 : 2; // 1 for Player 1, 2 for Player 2
-        const gamePhaseFeature = winPhase > 0 ? 1 : 0; // 1 for win phase, 0 for ongoing
+        // Create an object with the input name and corresponding tensor
+        const feeds = {
+            input: inputTensor  // Use the correct input name used in the export
+        };
 
-        // Extend the board state with the extra features
-        const extendedBoard = [...processedBoard, currentPlayerFeature, gamePhaseFeature];
-
-        // Check if the extended board size is 44 (42 + 2 features)
-        if (extendedBoard.length !== 44) {
-            throw new Error("Extended board state does not have 44 elements.");
-        }
-
-        // Create the input tensor with the extended board (now size 44)
-        const inputTensor = new ort.Tensor("float32", new Float32Array(extendedBoard), [1, 44]);
-
-        console.log("Input Tensor:", inputTensor); // Debugging the input tensor
-
-        // Load the model and run the inference
-        const session = await ort.InferenceSession.create("js/connect5_model.onnx");
-        const outputs = await session.run({ input: inputTensor });
-
-        console.log("Model Output:", outputs); // Debugging the model output
-
-        // Extract move probabilities from the model output
-        const moveProbabilities = outputs.output ? outputs.output.data : outputs[Object.keys(outputs)[0]].data;
-
-        // Check if the output is valid and contains move probabilities
-        if (moveProbabilities && moveProbabilities.length === 7) {
-            console.log("Move Probabilities:", moveProbabilities); // Debugging the move probabilities
-
-            // Ensure moveProbabilities contains valid numbers (no NaN values)
-            if (moveProbabilities.every(prob => !isNaN(prob))) {
-                // Get the best move (highest probability column)
-                const bestMove = moveProbabilities.indexOf(Math.max(...moveProbabilities));
-                aiPredict.innerText = `AI predicts column: ${bestMove}`;
-            } else {
-                console.error("Invalid output data: NaN values detected in move probabilities");
-                aiPredict.innerText = "AI prediction error";
-            }
-        } else {
-            console.error("Invalid output data or shape:", moveProbabilities);
-            aiPredict.innerText = "AI prediction error";
-        }
-    } catch (error) {
-        console.error("Failed to load model:", error);
-        aiPredict.innerText = "AI prediction error";
+        // Run the model
+        const output = await model.run(feeds);
+        console.log("AI Prediction output:", output);
+    } catch (err) {
+        console.error("Error during prediction:", err);
     }
 }
 
 
+// Ensure the model is loaded before running predictions
+async function startPrediction(input) {
+    await loadModel();  // Wait for the model to load
+    await updateAIPrediction(input);
+}
 
-
-
-
+// Example usage
+startPrediction(someInputData);
