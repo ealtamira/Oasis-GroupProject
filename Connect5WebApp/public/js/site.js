@@ -201,7 +201,7 @@ function getBoardState() {
     });
 
     // Flatten the board to match the expected input length of 44
-    return board.flat().slice(0, 44); // Ensure it only returns 44 elements
+    return board; // Ensure it only returns 44 elements
 }
 
 function checkWin() {
@@ -268,7 +268,6 @@ async function loadModel() {
         console.log("Model loaded successfully");
     } catch (err) {
         console.error("Error loading AI model:", err);
-        alert("Error loading the AI model. Please check the file path.");
     }
 }
 
@@ -279,7 +278,7 @@ async function updateAIPrediction() {
         return;
     }
 
-    const input = getBoardState(); // This should return a flattened 44-element array
+    const input = getBoardState().flat().slice(0, 44); // This should return a flattened 44-element array
 
     try {
         console.log("Input data:", input);
