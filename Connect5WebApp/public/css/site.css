@@ -61,6 +61,7 @@ body, html {
     height: 90%;
     border-radius: 50%;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3), 0px 0px 8px rgba(255, 0, 0, 0.5); /* Adding red glow to player 1 */
+    animation: pieceDrop 1.2s ease-out;
 }
 
 .p1 {
@@ -78,11 +79,21 @@ body, html {
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
 }
 
+/* Player Piece Drop Animation */
+@keyframes pieceDrop {
+    0% {
+        transform: translateY(-700%);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
 /* Footer styling */
 footer {
     text-align: center;
     margin-top: 20px;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #bbb;
     text-shadow: 0px 0px 5px rgba(0, 255, 255, 0.5);
 }
@@ -108,6 +119,7 @@ footer {
     transition: all 0.3s ease-in-out;
     text-transform: uppercase;
     box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
+    animation: glowPulse 2s infinite ease-in-out;
 }
 
 #resetbutton:hover {
@@ -118,6 +130,19 @@ footer {
 #resetbutton:active {
     transform: scale(0.95);
     background: #c23616;
+}
+
+/* Power-up glow pulse animation */
+@keyframes glowPulse {
+    0% {
+        box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
+    }
+    50% {
+        box-shadow: 3px 3px 30px rgba(255, 71, 87, 1);
+    }
+    100% {
+        box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
+    }
 }
 
 /* Power-up slots */
