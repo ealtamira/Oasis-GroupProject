@@ -2,7 +2,8 @@
   "dependencies": {
     "ejs": "^3.1.10",
     "express": "^5.0.1",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "onnxruntime-web": "^1.20.1"
   },
   "scripts": {
     "start": "nodemon start app.js"
