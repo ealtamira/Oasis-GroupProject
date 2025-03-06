@@ -54,18 +54,18 @@ function resetAb() {
 function useDouble() {
     if (p1Ab == "Double" && oddPlayer || p2Ab == "Double" && !oddPlayer) {
         currentPowerUp = "Double";
-        console.log("Power Up Double Activated!")
+        console.log("Power Up Double Activated!");
     } else {
-        console.log("Invalid Turn.")
+        console.log("Invalid Turn.");
     }
 }
 
 function useStone() {
     if (p1Ab == "Stone" && oddPlayer || p2Ab == "Stone" && !oddPlayer) {
         currentPowerUp = "Stone";
-        console.log("Power Up Stone Activated!")
+        console.log("Power Up Stone Activated!");
     } else {
-        console.log("Invalid Turn.")
+        console.log("Invalid Turn.");
     }
 }
 
@@ -257,9 +257,9 @@ function checkWin() {
 // AI prediction update function
 let model = null;
 
-const input = [ /* your data here (44 elements) */ ];
-const inputArray = new Float32Array(input);
-
+const input = getBoardState(); // Make sure this function returns an array with 44 elements
+console.log("Extracted input:", input); // Log to verify the data
+updateAIPrediction(input);
 
 let someInputData = [
     0, 1, 0, 1, 0, 1,   // Row 1 (7 columns)
@@ -276,10 +276,12 @@ let someInputData = [
 
 async function loadModel() {
     try {
+        console.log("Loading the model...");
         model = await ort.InferenceSession.create("./js/connect5_model.onnx");
         console.log("Model loaded successfully");
     } catch (err) {
         console.error("Error loading AI model:", err);
+        alert("Error loading the AI model. Please check the file path.");
     }
 }
 
@@ -290,23 +292,29 @@ async function updateAIPrediction(input) {
     }
 
     try {
-        // Ensure input is a Float32Array and reshape it to [1, 44]
-        const inputArray = new Float32Array(input);  // Convert input data to Float32Array
-        const inputTensor = new ort.Tensor("float32", inputArray, [1, 44]);  // Shape [1, 44]
+        console.log("Input data:", input);
 
-        // Create an object with the input name and corresponding tensor
+        // Ensure the input data is a Float32Array
+        const inputArray = new Float32Array(input);  // Convert the input to Float32Array
+        const inputTensor = new ort.Tensor("float32", inputArray, [1, 44]); // 1 sample, 44 features
+
+        // Create an object to feed the model
         const feeds = {
-            input: inputTensor  // Use the correct input name used in the export
+            input: inputTensor  // The input name used during export is 'input'
         };
 
         // Run the model
         const output = await model.run(feeds);
         console.log("AI Prediction output:", output);
+
+        // Extract the prediction result (assuming 'output' is the name of the output tensor)
+        const prediction = output.output.data;
+        console.log("Predicted Output:", prediction);
+
     } catch (err) {
         console.error("Error during prediction:", err);
     }
 }
-
 
 // Ensure the model is loaded before running predictions
 async function startPrediction(input) {
