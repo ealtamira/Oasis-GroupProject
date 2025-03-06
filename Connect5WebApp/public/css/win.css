@@ -1,0 +1,57 @@
+/* Global reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Center everything */
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e1e2e, #2a2a3a);
+    color: white;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+}
+
+/* Header styling */
+h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 3px 3px 10px rgba(255, 255, 255, 0.2);
+}
+
+/* Winner text */
+p {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+
+/* Winner name highlighted */
+strong {
+    color: #feca57;
+    font-size: 1.8rem;
+}
+
+/* Play Again button */
+button {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+button:hover {
+    background: #e84118;
+    transform: scale(1.1);
+}
