@@ -20,7 +20,7 @@ let gameData = [];
 // Load AI Model on Page Load
 window.addEventListener("load", loadModel);
 
-resetbutton.innerHTML = `<button onclick="resetAb()">Reset</button>`;
+resetbutton.innerHTML = `<button onclick="resetAb()">Reset Power-Up</button>`;
 let rand = Math.floor(Math.random() * 5);
 
 if (rand == 0) {
@@ -268,6 +268,7 @@ async function loadModel() {
         console.log("Model loaded successfully");
     } catch (err) {
         console.error("Error loading AI model:", err);
+
     }
 }
 
