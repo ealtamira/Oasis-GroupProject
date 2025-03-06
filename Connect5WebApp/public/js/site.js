@@ -237,7 +237,11 @@ function checkWin() {
                 } else break;
             }
 
-            if (count >= 5) return true;
+            if (count >= 5) {
+                saveGameData();
+                return true;
+            }
+                
         }
         return false;
     }
