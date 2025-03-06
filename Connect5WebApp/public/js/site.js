@@ -305,3 +305,12 @@ async function updateAIPrediction() {
         console.error("Error during prediction:", err);
     }
 }
+
+function saveGameData() {
+    const jsonData = JSON.stringify(gameData, null, 2);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "game_data.json";
+    a.click();
+}
