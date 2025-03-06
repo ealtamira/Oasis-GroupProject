@@ -26,7 +26,7 @@ train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
 class Connect5Net(nn.Module):
     def __init__(self):
         super(Connect5Net, self).__init__()
-        self.fc1 = nn.Linear(44, 128)  # 42 board cells + player + power-up = 44 inputs
+        self.fc1 = nn.Linear(42, 128)  # 42 board cells = 44 inputs
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 7)  # 7 output neurons (one for each column)
 

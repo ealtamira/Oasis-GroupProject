@@ -187,18 +187,21 @@ function getBoardState() {
     const board = [];
     const columns = document.querySelectorAll(".column");
 
-    columns.forEach(column => {
+    columns.forEach((column, colIndex) => {
         let colState = [];
-        column.querySelectorAll(".cell").forEach(cell => {
-            if (cell.classList.contains("p1")) colState.push(1);
-            else if (cell.classList.contains("p2")) colState.push(2);
-            else if (cell.classList.contains("stone")) colState.push(-1);
-            else colState.push(0);
+        column.querySelectorAll(".cell").forEach((cell, rowIndex) => {
+            if (rowIndex < 6) { // Only consider the first 6 rows
+                if (cell.classList.contains("p1")) colState.push(1);
+                else if (cell.classList.contains("p2")) colState.push(2);
+                else if (cell.classList.contains("stone")) colState.push(-1);
+                else colState.push(0);
+            }
         });
         board.push(colState);
     });
 
-    return board;
+    // Flatten the board to match the expected input length of 44
+    return board.flat().slice(0, 44); // Ensure it only returns 44 elements
 }
 
 function checkWin() {
@@ -257,23 +260,7 @@ function checkWin() {
 // AI prediction update function
 let model = null;
 
-const input = getBoardState(); // Make sure this function returns an array with 44 elements
-console.log("Extracted input:", input); // Log to verify the data
-updateAIPrediction(input);
-
-let someInputData = [
-    0, 1, 0, 1, 0, 1,   // Row 1 (7 columns)
-    1, 0, 1, 0, 1, 0,   // Row 2
-    0, 1, 0, 1, 0, 1,   // Row 3
-    1, 0, 1, 0, 1, 0,   // Row 4
-    0, 1, 0, 1, 0, 1,   // Row 5
-    1, 0, 1, 0, 1, 0,   // Row 6
-    0, 1, 0, 1, 0, 1,   // Row 7 (Flattened)
-    
-    // 2 extra elements for additional features (e.g., player turn and power-up)
-    1, 0   // Example: player 1's turn, no power-up (adjust based on actual features)
-];
-
+// Ensure the model is loaded before any prediction
 async function loadModel() {
     try {
         console.log("Loading the model...");
@@ -285,11 +272,14 @@ async function loadModel() {
     }
 }
 
-async function updateAIPrediction(input) {
+// AI prediction update function
+async function updateAIPrediction() {
     if (!model) {
         console.error("AI model is not loaded properly.");
         return;
     }
+
+    const input = getBoardState(); // This should return a flattened 44-element array
 
     try {
         console.log("Input data:", input);
@@ -315,12 +305,3 @@ async function updateAIPrediction(input) {
         console.error("Error during prediction:", err);
     }
 }
-
-// Ensure the model is loaded before running predictions
-async function startPrediction(input) {
-    await loadModel();  // Wait for the model to load
-    await updateAIPrediction(input);
-}
-
-// Example usage
-startPrediction(someInputData);
