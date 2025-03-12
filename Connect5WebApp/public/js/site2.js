@@ -1,3 +1,5 @@
+const ort = require('onnxruntime-web');
+
 const columns = document.querySelectorAll(".column");
 
 let oddPlayer = true;
@@ -17,7 +19,7 @@ let currentPowerUp = "";
 
 let gameData = [];
 
-// Load AI Model on Page Load
+let session;
 window.addEventListener("load", loadModel);
 
 resetbutton.innerHTML = `<button onclick="resetAb()">Reset Power-Up</button>`;
@@ -29,15 +31,12 @@ if (rand == 0) {
 
     p2Ab = "Double";
     p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
-    
 } else if(rand == 1) {
-
     p1Ab = "Double";
     p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
 
     p2Ab = "Stone";
     p2Btn.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
-
 } else {
     p1Ab = "Double";
     p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
@@ -52,6 +51,7 @@ function resetAb() {
 }
 
 function useDouble() {
+    console.log("useDouble called");
     if (p1Ab == "Double" && oddPlayer || p2Ab == "Double" && !oddPlayer) {
         currentPowerUp = "Double";
         console.log("Power Up Double Activated!");
@@ -61,6 +61,7 @@ function useDouble() {
 }
 
 function useStone() {
+    console.log("useStone called");
     if (p1Ab == "Stone" && oddPlayer || p2Ab == "Stone" && !oddPlayer) {
         currentPowerUp = "Stone";
         console.log("Power Up Stone Activated!");
@@ -91,6 +92,7 @@ function handleColumnClick(columnIndex) {
     gameData.push(moveData);
 
     const columnCells = document.querySelectorAll(`.column:nth-child(${columnIndex + 1}) .cell`);
+
     for (let i = (columnCells.length - 1); i >= 0; i--) {
         if (columnCells[i].classList.contains("playable")) {
             columnCells[i].classList.remove("playable");
@@ -102,6 +104,7 @@ function handleColumnClick(columnIndex) {
             if (currentPowerUp == "Stone") {
                 columnCells[i].classList.add("stone");
                 currentPowerUp = "";
+                console.log("Stone power-up applied at row " + i);
                 if (p1Ab == "Stone") {
                     p1Ab = "";
                     p1Btn.innerHTML = "";
@@ -135,7 +138,6 @@ function handleColumnClick(columnIndex) {
 
             checkWin();
 
-            // Update AI prediction after each move
             updateAIPrediction();
 
             break;
@@ -181,14 +183,21 @@ function handleColumnRelease(columnIndex) {
     }
 }
 
+function getFlattenedBoard() {
+    console.log("getFlattenedBoard called");
+    const board = getBoardState();
+    return board.flat();
+}
+
 function getBoardState() {
+    console.log("getBoardState called");
     const board = [];
     const columns = document.querySelectorAll(".column");
 
     columns.forEach((column, colIndex) => {
         let colState = [];
         column.querySelectorAll(".cell").forEach((cell, rowIndex) => {
-            if (rowIndex < 6) { // Only consider the first 6 rows
+            if (rowIndex < 6) {
                 if (cell.classList.contains("p1")) colState.push(1);
                 else if (cell.classList.contains("p2")) colState.push(-1);
                 else if (cell.classList.contains("stone")) colState.push(2);
@@ -198,8 +207,8 @@ function getBoardState() {
         board.push(colState);
     });
 
-    // Flatten the board to match the expected input length of 42
-    return board; // Ensure it only returns 42 elements
+    console.log(`Board State: ${JSON.stringify(board)}`);
+    return board;
 }
 
 function checkWin() {
@@ -237,9 +246,15 @@ function checkWin() {
 
             if (count >= 5) {
                 saveGameData();
+                console.log(`Winning move detected for player ${player}`);
+                winPhase = 1;
+                eventText.innerText = `${player} wins!`;
+                let winner = player;
+                setTimeout(() => {
+                    window.location.href = `/win?winner=${winner}`;
+                }, 2000);
                 return true;
             }
-                
         }
         return false;
     }
@@ -247,12 +262,6 @@ function checkWin() {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             if (board[row][col] && isWinningMove(row, col, board[row][col])) {
-                winPhase = 1;
-                eventText.innerText = `${board[row][col]} wins!`;
-                let winner = board[row][col];
-                setTimeout(() => {
-                    window.location.href = `/win?winner=${winner}`;
-                }, 2000);
                 return;
             }
         }
@@ -260,10 +269,30 @@ function checkWin() {
 }
 
 function saveGameData() {
+    console.log("Saving game data...");
     const jsonData = JSON.stringify(gameData, null, 2);
     const blob = new Blob([jsonData], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "game_data.json";
     a.click();
+}
+
+async function loadModel() {
+    console.log("Loading AI Model...");
+    try {
+        session = await ort.InferenceSession.create("model.onnx");
+        console.log("AI Model Loaded Successfully");
+    } catch (err) {
+        console.error("Failed to load AI model:", err);
+    }
+}
+
+async function getAIMove() {
+    console.log("getAIMove called");
+    if (!session) {
+        console.error("AI Model not loaded");
+        return;
+    }
+    // Add code to interact with the AI model here
 }

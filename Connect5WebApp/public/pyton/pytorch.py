@@ -3,13 +3,12 @@ import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 import torch.onnx
-import onnx
 from torch.utils.data import DataLoader, TensorDataset
 
 # Load dataset
 df = pd.read_csv("output_dataset.csv")
 
-# Extract features (board state, power-up) and target (move_column)
+# Extract features (board state) and target (move_column)
 X = df.drop(columns=["move_column"]).values  # Input features
 y = df["move_column"].values                 # Target column (where to place piece)
 
@@ -26,14 +25,14 @@ train_loader = DataLoader(dataset, batch_size=32, shuffle=True)
 class Connect5Net(nn.Module):
     def __init__(self):
         super(Connect5Net, self).__init__()
-        self.fc1 = nn.Linear(42, 128)  # 42 board cells = 44 inputs
+        self.fc1 = nn.Linear(42, 128)  # 42 board cells as input
         self.fc2 = nn.Linear(128, 64)
         self.fc3 = nn.Linear(64, 7)  # 7 output neurons (one for each column)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        return self.fc3(x)  # No softmax since we use CrossEntropyLoss
+        return self.fc3(x)
 
 # Create model
 model = Connect5Net()
@@ -64,12 +63,10 @@ model = Connect5Net()
 model.load_state_dict(torch.load("connect5_model.pth"))
 model.eval()  # Set model to inference mode
 
-# Dummy input tensor (for exporting ONNX model)
+# Dummy input tensor for ONNX export (Ensure correct input size)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)  # Move model to GPU
-dummy_input = torch.randn(1, 44, dtype=torch.float32).to(device)  # Ensure input is on GPU
-
-#dummy_input = torch.randn(1, 44)
+model.to(device)  # Move model to GPU if available
+dummy_input = torch.randn(1, 42, dtype=torch.float32).to(device)  # Ensure correct shape
 
 # Export to ONNX format
 onnx_filename = "connect5_model.onnx"
