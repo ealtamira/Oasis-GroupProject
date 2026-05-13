@@ -1,181 +1,204 @@
 /* Full-page settings */
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: #222;
-    color: white;
-    font-family: 'Roboto', sans-serif;
+body,
+html {
+  margin: 0;
+  padding: 20px 0;
+  height: auto;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 128, 128, 0.6),
+    rgba(255, 0, 255, 0.3)
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+  color: white;
+  font-family: "Roboto", sans-serif;
+  overflow: auto;
 }
 
-/* Game board: Keeps it square and centers */
+/* Header styling */
+header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 0;
+  text-shadow: 0px 0px 10px rgba(0, 255, 255, 0.5);
+}
+
+h2 {
+  font-weight: 300;
+  font-size: 1.2rem;
+  margin-top: 5px;
+}
+
 .gameBoard {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 90vmin;  /* Ensures the board stays square */
-    height: 90vmin;
-    max-width: 100vw;
-    max-height: 100vh;
-    gap: 5px;
-    background-color: #1e1e1e;
-    border-radius: 15px;
-    box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.6);
+  display: flex;
+  flex-direction: row;
+  justify-content: center; /* Changed from space-evenly to keep columns grouped */
+  align-items: center;
+  width: 90vmin;
+  height: 65vmin;
+  padding: 15px;
+  margin: 0 auto;
+  background-color: #1a1a1a;
+  border-radius: 15px;
+  box-shadow: 0px 0px 30px rgba(0, 255, 255, 0.2);
+  gap: 8px;
 }
 
-/* Columns stack vertically */
 .column {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end; /* Pieces drop from top */
-    width: 14%;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  justify-content: flex-end;
+  max-width: 14%;
+  min-width: 0;
+  overflow: hidden;
 }
 
-/* Cells stay square with smooth hover transition */
 .cell {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 1/1; /* Ensures squares */
-    border: 2px solid #333;
-    background-color: #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    border-radius: 8px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: #2a2a2a;
+  border-radius: 50%;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: calc(65vmin / 6);
+  margin-bottom: 4px;
 }
 
 .cell:hover {
-    transform: scale(1.05);
+  background-color: #333;
+  transform: scale(1.02);
 }
 
-/* Player pieces with a shadow and slight glow effect */
-.p1, .p2, .stone {
-    width: 90%;
-    height: 90%;
-    border-radius: 50%;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3), 0px 0px 8px rgba(255, 0, 0, 0.5); /* Adding red glow to player 1 */
-    animation: pieceDrop 1.2s ease-out;
+/* Player pieces */
+.p1,
+.p2,
+.stone {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  object-fit: contain;
+  animation: pieceDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .p1 {
-    background-color: red;
-    box-shadow: 0px 4px 8px rgba(255, 0, 0, 0.5);
+  background: radial-gradient(circle at 30% 30%, #ff4d4d, #800000);
+  box-shadow: 0px 4px 10px rgba(255, 0, 0, 0.5);
 }
 
 .p2 {
-    background-color: yellow;
-    box-shadow: 0px 4px 8px rgba(255, 255, 0, 0.5);
+  background: radial-gradient(circle at 30% 30%, #ffff66, #b3b300);
+  box-shadow: 0px 4px 10px rgba(255, 255, 0, 0.5);
 }
 
 .stone {
-    background-color: grey;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  background: radial-gradient(circle at 30% 30%, #888, #333);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
 }
 
-/* Player Piece Drop Animation */
+/* Drop Animation */
 @keyframes pieceDrop {
-    0% {
-        transform: translateY(-700%);
-    }
-    100% {
-        transform: translateY(0);
-    }
+  0% {
+    transform: translateY(-500px);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
-/* Footer styling */
-footer {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 1rem;
-    color: #bbb;
-    text-shadow: 0px 0px 5px rgba(0, 255, 255, 0.5);
-}
-
-/* Power-up container styling */
+/* Power-up UI */
 .powerups {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-top: 20px;
 }
 
-/* Power-up button styling */
-#resetbutton {
-    background: #ff4757;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    text-transform: uppercase;
-    box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
-    animation: glowPulse 2s infinite ease-in-out;
+#p1powerup,
+#p2powerup {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #ff4757;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-#resetbutton:hover {
-    background: #e84118;
-    transform: scale(1.1);
+/* Style for buttons inside power-up slots */
+.powerups button {
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #ff4757;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+  transition: transform 0.1s;
 }
 
-#resetbutton:active {
-    transform: scale(0.95);
-    background: #c23616;
+.powerups button:hover {
+  transform: scale(1.05);
 }
 
-/* Power-up glow pulse animation */
-@keyframes glowPulse {
-    0% {
-        box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
-    }
-    50% {
-        box-shadow: 3px 3px 30px rgba(255, 71, 87, 1);
-    }
-    100% {
-        box-shadow: 3px 3px 15px rgba(255, 71, 87, 0.5);
-    }
+#resetbutton button {
+  background: #2f3542;
+  padding: 12px 20px;
+  border-radius: 8px;
 }
 
-/* Power-up slots */
-#p1powerup, #p2powerup {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #ff4757;
-    box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* AI Prediction Bar */
+#predict-container {
+  width: 85vmin;
+  margin-top: 15px;
 }
 
-#p1powerup:hover, #p2powerup:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 71, 87, 1);
+#predict {
+  font-family: "Courier New", monospace;
+  color: #00ffff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
-/* Adding some gradient to background */
-body {
-    background: linear-gradient(135deg, rgba(0, 128, 128, 0.6), rgba(255, 0, 255, 0.3));
-    background-size: 400% 400%;
-    animation: gradientShift 10s ease infinite;
-}
-
+/* Background Animations */
 @keyframes gradientShift {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+footer {
+  margin-top: auto;
+  padding-bottom: 10px;
+  color: #bbb;
+  font-size: 0.8rem;
 }

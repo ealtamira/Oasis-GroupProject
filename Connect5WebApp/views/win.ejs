@@ -1,21 +1,29 @@
 <!DOCTYPE html>
-<html>
-    <head> 
-        <link rel="stylesheet" href="./css/win.css"/>
-        <script src="/js/site2.js" defer></script>
-        <script type="module" src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-        <title>The Winner!</title>
-    </head>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/win.css" />
+    <title>Oasis | Game Over</title>
+  </head>
 
-    <body>
-        <h1>🎉 Congratulations! 🎉</h1>
-        <p>The winner is: <strong><%= winner %></strong></p>
-        <button onclick="goToHome()">Play Again</button>
+  <body>
+    <div class="win-card">
+      <h1>🎉 Congratulations! 🎉</h1>
+      <p>The winner is: <strong id="winner-name"><%= winner %></strong></p>
 
-        <script>
-            function goToHome() {
-                window.location.href = '/'; // Redirect to the base game
-            }
-        </script>
-    </body>
+      <div class="stats-box">
+        <!-- Optional: You could pass game stats here later -->
+        <p>The AI didn't stand a chance.</p>
+      </div>
+
+      <button onclick="goToHome()">Play Again</button>
+    </div>
+
+    <script>
+      function goToHome() {
+        window.location.href = "/";
+      }
+    </script>
+  </body>
 </html>

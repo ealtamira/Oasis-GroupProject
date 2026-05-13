@@ -1,298 +1,230 @@
-const ort = require('onnxruntime-web');
-
-const columns = document.querySelectorAll(".column");
+// 1. Remove the 'require' line as it crashes the browser. 
+// The 'ort' object is already provided by your HTML script tag.
 
 let oddPlayer = true;
-let eventText = document.getElementById("eventText");
-
 let winPhase = 0;
-
-let p1Btn = document.getElementById('p1powerup');
-let p2Btn = document.getElementById('p2powerup');
-let resetbutton = document.getElementById('resetbutton');
-
-let aiPredict = document.getElementById('predict');
-
 let p1Ab = "";
 let p2Ab = "";
 let currentPowerUp = "";
-
 let gameData = [];
-
 let session;
-window.addEventListener("load", loadModel);
 
-resetbutton.innerHTML = `<button onclick="resetAb()">Reset Power-Up</button>`;
-let rand = Math.floor(Math.random() * 5);
+// Wait for the HTML to be fully loaded before running the script
+document.addEventListener("DOMContentLoaded", () => {
+    // Select elements
+    const boardContainer = document.getElementById("board");
+    const eventText = document.getElementById("eventText");
+    const p1Btn = document.getElementById('p1powerup');
+    const p2Btn = document.getElementById('p2powerup');
+    const resetContainer = document.getElementById('resetbutton');
 
-if (rand == 0) {
-    p1Ab = "Stone";
-    p1Btn.innerHTML = `<button onclick="useStone()">Stone (P1)</button>`;
+    // 2. Generate the Grid
+    if (boardContainer) {
+        for (let c = 0; c < 7; c++) {
+            const colDiv = document.createElement("div");
+            colDiv.classList.add("column");
+            for (let r = 0; r < 6; r++) {
+                const cellDiv = document.createElement("div");
+                cellDiv.classList.add("cell");
+                if (r === 5) cellDiv.classList.add("playable");
+                colDiv.appendChild(cellDiv);
+            }
+            boardContainer.appendChild(colDiv);
+        }
+    }
 
-    p2Ab = "Double";
-    p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
-} else if(rand == 1) {
-    p1Ab = "Double";
-    p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
+    // Now that columns exist, select them
+    const columns = document.querySelectorAll(".column");
 
-    p2Ab = "Stone";
-    p2Btn.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
-} else {
-    p1Ab = "Double";
-    p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
+    // 3. Initialize Power-Ups
+    resetContainer.innerHTML = `<button id="realResetBtn">Reset Power-Up</button>`;
+    document.getElementById("realResetBtn").onclick = resetAb;
 
-    p2Ab = "Double";
-    p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
-}
+    let rand = Math.floor(Math.random() * 3);
+    if (rand == 0) {
+        p1Ab = "Stone";
+        p1Btn.innerHTML = `<button onclick="useStone()">Stone (P1)</button>`;
+        p2Ab = "Double";
+        p2Btn.innerHTML = `<button onclick="useDouble()">Double (P2)</button>`;
+    } else if (rand == 1) {
+        p1Ab = "Double";
+        p1Btn.innerHTML = `<button onclick="useDouble()">Double (P1)</button>`;
+        p2Ab = "Stone";
+        p2Btn.innerHTML = `<button onclick="useStone()">Stone (P2)</button>`;
+    } else {
+        p1Ab = "Double";
+        p1Btn.innerHTML = `<button onclick="useDouble()">Double (P1)</button>`;
+        p2Ab = "Double";
+        p2Btn.innerHTML = `<button onclick="useDouble()">Double (P2)</button>`;
+    }
+
+    // 4. Attach Event Listeners
+    columns.forEach((column, columnIndex) => {
+        column.addEventListener("click", () => handleColumnClick(columnIndex, columns, eventText, p1Btn, p2Btn));
+        column.addEventListener("mouseover", () => handleColumnHover(columnIndex, columns));
+        column.addEventListener("mouseout", () => handleColumnRelease(columnIndex, columns));
+    });
+
+    loadModel();
+});
+
+// --- HELPER FUNCTIONS ---
 
 function resetAb() {
     currentPowerUp = "";
-    console.log("Reset Power-Up");
+    console.log("Power-Up Reset");
 }
 
-function useDouble() {
-    console.log("useDouble called");
-    if (p1Ab == "Double" && oddPlayer || p2Ab == "Double" && !oddPlayer) {
+window.useDouble = function () {
+    if ((p1Ab === "Double" && oddPlayer) || (p2Ab === "Double" && !oddPlayer)) {
         currentPowerUp = "Double";
-        console.log("Power Up Double Activated!");
-    } else {
-        console.log("Invalid Turn.");
     }
-}
+};
 
-function useStone() {
-    console.log("useStone called");
-    if (p1Ab == "Stone" && oddPlayer || p2Ab == "Stone" && !oddPlayer) {
+window.useStone = function () {
+    if ((p1Ab === "Stone" && oddPlayer) || (p2Ab === "Stone" && !oddPlayer)) {
         currentPowerUp = "Stone";
-        console.log("Power Up Stone Activated!");
-    } else {
-        console.log("Invalid Turn.");
     }
-}
+};
 
-columns.forEach((column, columnIndex) => {
-    column.addEventListener("click", () => {
-        handleColumnClick(columnIndex);
-        const mouseOverEvent = new Event("mouseover");
-        column.dispatchEvent(mouseOverEvent);
-    });
-
-    column.addEventListener("mouseover", () => handleColumnHover(columnIndex));
-    column.addEventListener("mouseout", () => handleColumnRelease(columnIndex));
-});
-
-function handleColumnClick(columnIndex) {
+function handleColumnClick(columnIndex, columns, eventText, p1Btn, p2Btn) {
     if (winPhase > 0) return;
 
-    const boardState = getBoardState();
-    const moveData = {
-        board: JSON.parse(JSON.stringify(boardState)),
-        move: columnIndex,
-    };
-    gameData.push(moveData);
-
-    const columnCells = document.querySelectorAll(`.column:nth-child(${columnIndex + 1}) .cell`);
-
-    for (let i = (columnCells.length - 1); i >= 0; i--) {
+    const columnCells = columns[columnIndex].querySelectorAll(".cell");
+    for (let i = columnCells.length - 1; i >= 0; i--) {
         if (columnCells[i].classList.contains("playable")) {
             columnCells[i].classList.remove("playable");
+            if (columnCells[i - 1]) columnCells[i - 1].classList.add("playable");
 
-            if (columnCells[i - 1] != (null || undefined)) {
-                columnCells[i - 1].classList.add("playable");
-            }
-
-            if (currentPowerUp == "Stone") {
+            if (currentPowerUp === "Stone") {
                 columnCells[i].classList.add("stone");
+                if (oddPlayer) { p1Ab = ""; p1Btn.innerHTML = ""; }
+                else { p2Ab = ""; p2Btn.innerHTML = ""; }
                 currentPowerUp = "";
-                console.log("Stone power-up applied at row " + i);
-                if (p1Ab == "Stone") {
-                    p1Ab = "";
-                    p1Btn.innerHTML = "";
-                } else {
-                    p2Ab = "";
-                    p2Btn.innerHTML = "";
-                }
-
-            } else if (currentPowerUp == "Double") {
-                if (oddPlayer) {
-                    columnCells[i].classList.add("p1");
-                    p1Ab = "";
-                    p1Btn.innerHTML = "";
-                } else {
-                    columnCells[i].classList.add("p2");
-                    p2Ab = "";
-                    p2Btn.innerHTML = "";
-                }
-
-                currentPowerUp = "";
-                checkWin();
-                break;
-            }
-            else if (oddPlayer) {
-                columnCells[i].classList.add("p1");
             } else {
-                columnCells[i].classList.add("p2");
-            }   
+                columnCells[i].classList.add(oddPlayer ? "p1" : "p2");
+                if (currentPowerUp === "Double") {
+                    if (oddPlayer) { p1Ab = ""; p1Btn.innerHTML = ""; }
+                    else { p2Ab = ""; p2Btn.innerHTML = ""; }
+                    currentPowerUp = "";
+                    checkWin(columns, eventText);
+                    return; // Allow same player to move again
+                }
+            }
 
             oddPlayer = !oddPlayer;
-
-            checkWin();
-
-            updateAIPrediction();
-
+            eventText.innerText = oddPlayer ? "Player 1's Turn" : "Player 2's Turn";
+            checkWin(columns, eventText);
             break;
         }
     }
 }
 
-function handleColumnHover(columnIndex) {
-    if (winPhase > 0) return;
-
-    const columnCells = document.querySelectorAll(`.column:nth-child(${columnIndex + 1}) .cell`);
-
-    for (let i = (columnCells.length - 1); i >= 0; i--) {
+function handleColumnHover(columnIndex, columns) {
+    const columnCells = columns[columnIndex].querySelectorAll(".cell");
+    for (let i = columnCells.length - 1; i >= 0; i--) {
         if (columnCells[i].classList.contains("playable")) {
-            if (currentPowerUp == "Stone") {
-                columnCells[i].classList.add("stone");
-            }
-            else if (oddPlayer) {
-                columnCells[i].classList.add("p1");
-            } else {
-                columnCells[i].classList.add("p2");
-            }
+            columnCells[i].style.backgroundColor = "#444";
+            break;
         }
     }
 }
 
-function handleColumnRelease(columnIndex) {
-    if (winPhase > 0) return;
-
-    const columnCells = document.querySelectorAll(`.column:nth-child(${columnIndex + 1}) .cell`);
-
-    for (let i = (columnCells.length - 1); i >= 0; i--) {
-        if (columnCells[i].classList.contains("playable")) {
-            if (currentPowerUp == "Stone") {
-                columnCells[i].classList.remove("stone");
-            }
-            else if (oddPlayer) {
-                columnCells[i].classList.remove("p1");
-            } else {
-                columnCells[i].classList.remove("p2");
-            }
-        }
-    }
+function handleColumnRelease(columnIndex, columns) {
+    const columnCells = columns[columnIndex].querySelectorAll(".cell");
+    columnCells.forEach(c => c.style.backgroundColor = "");
 }
 
-function getFlattenedBoard() {
-    console.log("getFlattenedBoard called");
-    const board = getBoardState();
-    return board.flat();
-}
-
-function getBoardState() {
-    console.log("getBoardState called");
+function checkWin(columns, eventText) {
+    const rows = 6;
+    const cols = 7;
+    const winCondition = 5; // Setting for Connect 5
     const board = [];
-    const columns = document.querySelectorAll(".column");
 
-    columns.forEach((column, colIndex) => {
-        let colState = [];
-        column.querySelectorAll(".cell").forEach((cell, rowIndex) => {
-            if (rowIndex < 6) {
-                if (cell.classList.contains("p1")) colState.push(1);
-                else if (cell.classList.contains("p2")) colState.push(-1);
-                else if (cell.classList.contains("stone")) colState.push(2);
-                else colState.push(0);
-            }
+    // Convert DOM state to a 2D array [col][row]
+    columns.forEach(col => {
+        let colData = [];
+        col.querySelectorAll(".cell").forEach(cell => {
+            if (cell.classList.contains("p1")) colData.push(1);
+            else if (cell.classList.contains("p2")) colData.push(-1);
+            else colData.push(0); // Includes stones and empty cells
         });
-        board.push(colState);
+        board.push(colData);
     });
 
-    console.log(`Board State: ${JSON.stringify(board)}`);
-    return board;
-}
+    // Check every cell as a potential starting point for a win
+    for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+            const player = board[c][r];
+            if (player === 0) continue; // Skip empty or stone cells
 
-function checkWin() {
-    const board = getBoardState();
-    const rows = board.length;
-    const cols = board[0].length;
+            // Directions to check: [dColumn, dRow]
+            const directions = [
+                [0, 1],  // Vertical
+                [1, 0],  // Horizontal
+                [1, 1],  // Diagonal (Down-Right)
+                [1, -1]  // Diagonal (Up-Right)
+            ];
 
-    function isWinningMove(row, col, player) {
-        if (!player) return false;
-        const directions = [
-            [0, 1],  
-            [1, 0],  
-            [1, 1],  
-            [1, -1]  
-        ];
+            for (const [dc, dr] of directions) {
+                let count = 1;
 
-        for (let [dx, dy] of directions) {
-            let count = 1;
+                // Check the next 4 pieces in this direction
+                for (let i = 1; i < winCondition; i++) {
+                    const nextC = c + (dc * i);
+                    const nextR = r + (dr * i);
 
-            for (let i = 1; i < 5; i++) {
-                let newRow = row + dx * i;
-                let newCol = col + dy * i;
-                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
-                    count++;
-                } else break;
-            }
+                    // Ensure the next cell is within board boundaries
+                    if (nextC >= 0 && nextC < cols && nextR >= 0 && nextR < rows) {
+                        if (board[nextC][nextR] === player) {
+                            count++;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
 
-            for (let i = 1; i < 5; i++) {
-                let newRow = row - dx * i;
-                let newCol = col - dy * i;
-                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && board[newRow][newCol] === player) {
-                    count++;
-                } else break;
-            }
+                if (count === winCondition) {
+                    winPhase = 1;
+                    const winner = (player === 1) ? "Player 1" : "Player 2";
+                    eventText.innerText = `${winner} Wins! Redirecting in 10s...`;
 
-            if (count >= 5) {
-                saveGameData();
-                console.log(`Winning move detected for player ${player}`);
-                winPhase = 1;
-                eventText.innerText = `${player} wins!`;
-                let winner = player;
-                setTimeout(() => {
-                    window.location.href = `/win?winner=${winner}`;
-                }, 2000);
-                return true;
+                    // Optional: Start a countdown in the event text
+                    let secondsLeft = 10;
+                    const countdown = setInterval(() => {
+                        secondsLeft--;
+                        if (secondsLeft > 0) {
+                            eventText.innerText = `${winner} Wins! Redirecting in ${secondsLeft}s...`;
+                        } else {
+                            clearInterval(countdown);
+                        }
+                    }, 1000);
+
+                    setTimeout(() => {
+                        window.location.href = "/win";
+                    }, 10000);
+
+                    return;
+                }
             }
         }
-        return false;
     }
 
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            if (board[row][col] && isWinningMove(row, col, board[row][col])) {
-                return;
-            }
-        }
+    // Optional: Check for a Draw (Board full)
+    const isDraw = board.every(col => col.every(cellValue => cellValue !== 0 || col.includes("stone")));
+    if (isDraw && winPhase === 0) {
+        winPhase = 1;
+        eventText.innerText = "It's a Draw!";
     }
-}
-
-function saveGameData() {
-    console.log("Saving game data...");
-    const jsonData = JSON.stringify(gameData, null, 2);
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "game_data.json";
-    a.click();
 }
 
 async function loadModel() {
-    console.log("Loading AI Model...");
     try {
-        session = await ort.InferenceSession.create("model.onnx");
-        console.log("AI Model Loaded Successfully");
-    } catch (err) {
-        console.error("Failed to load AI model:", err);
+        session = await ort.InferenceSession.create("./model.onnx");
+        console.log("AI Loaded");
+    } catch (e) {
+        console.log("AI load failed - usually due to local file restrictions");
     }
-}
-
-async function getAIMove() {
-    console.log("getAIMove called");
-    if (!session) {
-        console.error("AI Model not loaded");
-        return;
-    }
-    // Add code to interact with the AI model here
 }

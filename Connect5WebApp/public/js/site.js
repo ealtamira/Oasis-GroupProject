@@ -29,8 +29,8 @@ if (rand == 0) {
 
     p2Ab = "Double";
     p2Btn.innerHTML = `<button onclick="useDouble()">Double Place (P2)</button>`;
-    
-} else if(rand == 1) {
+
+} else if (rand == 1) {
 
     p1Ab = "Double";
     p1Btn.innerHTML = `<button onclick="useDouble()">Double Place (P1)</button>`;
@@ -129,7 +129,7 @@ function handleColumnClick(columnIndex) {
                 columnCells[i].classList.add("p1");
             } else {
                 columnCells[i].classList.add("p2");
-            }   
+            }
 
             oddPlayer = !oddPlayer;
 
@@ -210,10 +210,10 @@ function checkWin() {
     function isWinningMove(row, col, player) {
         if (!player) return false;
         const directions = [
-            [0, 1],  
-            [1, 0],  
-            [1, 1],  
-            [1, -1]  
+            [0, 1],
+            [1, 0],
+            [1, 1],
+            [1, -1]
         ];
 
         for (let [dx, dy] of directions) {
@@ -239,7 +239,7 @@ function checkWin() {
                 saveGameData();
                 return true;
             }
-                
+
         }
         return false;
     }

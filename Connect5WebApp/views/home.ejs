@@ -1,86 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <link rel="stylesheet" href="./css/site.css"/>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./css/site.css" />
     <script src="./js/site2.js" defer></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-    <title>Connect 5 With Power-Ups</title>
-</head>
+    <!-- ONNX Runtime for AI logic -->
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"
+    ></script>
+    <title>Oasis | Connect 5 AI</title>
+  </head>
 
-<body>
-    <h1>Connect 5 With Power-Ups</h1> 
-    <h2 id="eventText"></h2>
-    <div class="gameBoard">
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-        <div class="column">
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell"></div>
-            <div class="cell playable"></div>
-        </div>
-    </div>
+  <body>
+    <header>
+      <h1>Connect 5 With Power-Ups</h1>
+      <h2 id="eventText">Ready Player One</h2>
+    </header>
 
-    <div class="powerups">
-        <div id="p1powerup"></div>
-        <div id="p2powerup"></div>
+    <main class="game-container">
+      <!-- The ID "board" is now added here so site2.js can find it -->
+      <div class="gameBoard" id="board">
+        <!-- JS will now automatically inject 7 columns and 6 rows here -->
+      </div>
+
+      <div class="powerups">
+        <!-- These divs will be filled with buttons by your JS -->
+        <div id="p1powerup" title="Player 1 Power-up"></div>
         <div id="resetbutton"></div>
-    </div>
-    <p id="predict">
-        AI Prediction
-    </p>
-</body>
+        <div id="p2powerup" title="Player 2 Power-up"></div>
+      </div>
 
-<footer>
-    Copyright © OASIS 2025
-</footer>
+      <div id="predict-container">
+        <p id="predict">🧠 AI Analyzing Board...</p>
+      </div>
+    </main>
 
+    <footer>
+      <p>Copyright © OASIS 2026</p>
+    </footer>
+  </body>
 </html>
